@@ -5,4 +5,4 @@ Destroying objects feels great
 main    #本番環境用
 develop #統合作業環境
 feature #機能追加・画面開発
-bugifx  #バグ修正
+bugfix  #バグ修正
