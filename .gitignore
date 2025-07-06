@@ -5,6 +5,7 @@
 *.bak
 node_modules/
 .env
+.history
 
 # Python venv
 backend/venv/
