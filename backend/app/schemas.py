@@ -13,4 +13,4 @@ class UserOut(BaseModel):
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: constr(min_lenght=6, max_length=64)
+    password: constr(min_length=6, max_length=64)

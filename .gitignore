@@ -9,3 +9,4 @@ node_modules/
 
 # Python venv
 backend/venv/
+backend/app/__pycache__
