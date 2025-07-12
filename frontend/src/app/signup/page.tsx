@@ -11,14 +11,21 @@ export default function SignupPage() {
 
   const handleSignup = async () => {
     try {
+      // ① サインアップAPI呼び出し
       await axios.post('http://localhost:8000/signup', { email, password })
-      alert('登録成功！ログインしてください。')
-      router.push('/')
+
+      // ② 成功したら、そのままログインAPIを実行
+      await axios.post('http://localhost:8000/login', { email, password })
+
+      // ③ ローカルストレージに保存 & ホームへ遷移
+      localStorage.setItem('userEmail', email)
+      router.push('/home')
+
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        alert('登録失敗: ' + (err.response?.data?.detail || err.message))
+        alert('エラー: ' + (err.response?.data?.detail || err.message))
       } else {
-        alert('登録失敗（予期しないエラー）')
+        alert('予期しないエラーが発生しました')
       }
     }
   }
@@ -33,7 +40,7 @@ export default function SignupPage() {
           placeholder="メールアドレス"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          className="w-full px-4 py-2 rounded bg-white text-black border focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full px-4 py-2 rounded bg-white text-black border"
         />
 
         <input
@@ -41,14 +48,14 @@ export default function SignupPage() {
           placeholder="パスワード（6文字以上）"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          className="w-full px-4 py-2 rounded bg-white text-black border focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full px-4 py-2 rounded bg-white text-black border"
         />
 
         <button
           onClick={handleSignup}
           className="w-full bg-green-500 text-white font-semibold py-2 rounded hover:bg-green-600"
         >
-          登録する
+          登録してログイン
         </button>
 
         <button
