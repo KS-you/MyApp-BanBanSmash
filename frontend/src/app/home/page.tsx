@@ -18,9 +18,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-gray-200 p-8 rounded-xl w-80 text-center shadow-lg space-y-4">
+      <div className="bg-gray-400 p-8 rounded-xl w-80 text-center shadow-lg space-y-4">
         <h2 className="text-xl font-bold text-black">ホーム</h2>
-        <p className="text-sm text-gray-700">ようこそ {userEmail} さん</p>
+        <p className="text-sm text-white">ようこそ {userEmail} さん</p>
 
         <button
           onClick={() => alert('ゲームスタート！')}

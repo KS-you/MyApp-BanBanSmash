@@ -56,7 +56,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-gray-200 p-8 rounded-xl w-80 space-y-4 text-center shadow-lg">
+      <div className="bg-gray-400 p-8 rounded-xl w-80 space-y-4 text-center shadow-lg">
         <h2 className="text-xl font-bold text-black">サインアップ</h2>
 
         {errorMessage && <p className='text-red-600 text-sm'>{errorMessage}</p>}
