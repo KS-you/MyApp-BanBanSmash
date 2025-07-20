@@ -7,33 +7,59 @@ import axios from 'axios'
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const router = useRouter()
 
   const handleSignup = async () => {
-    try {
-      // ① サインアップAPI呼び出し
-      await axios.post('http://localhost:8000/signup', { email, password })
+  setErrorMessage('')
 
-      // ② 成功したら、そのままログインAPIを実行
-      await axios.post('http://localhost:8000/login', { email, password })
+  if (!email || !password) {
+    setErrorMessage('メールアドレスとパスワードを入力してください。')
+    return
+  }
+  try {
+    await axios.post('http://localhost:8000/signup', { email, password })
+    await axios.post('http://localhost:8000/login', { email, password })
+    localStorage.setItem('userEmail', email)
+    router.push('/home')
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const detail = err.response?.data?.detail
 
-      // ③ ローカルストレージに保存 & ホームへ遷移
-      localStorage.setItem('userEmail', email)
-      router.push('/home')
-
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        alert('エラー: ' + (err.response?.data?.detail || err.message))
+      if (typeof detail === 'string') {
+        if (detail === 'メールアドレスの形式が正しくありません。') {
+          setErrorMessage('メールアドレスの形式が間違っています。')
+        } else if (detail === 'このメールアドレスはすでに登録されています。') {
+          setErrorMessage('そのメールアドレスはすでに登録されています。')
+        } else if (detail === 'パスワードは6文字以上で入力してください。') {
+          setErrorMessage('パスワードは6文字以上で入力してください。')
+        } else {
+          setErrorMessage('登録中にエラーが発生しました。')
+        }
+      } else if (Array.isArray(detail)) {
+        const first = detail[0]
+        if (first?.loc?.includes('email')) {
+          setErrorMessage('メールアドレスの形式が間違っています。')
+        } else if (first?.loc?.includes('password') && first?.type === 'string_too_short') {
+          setErrorMessage('パスワードは6文字以上で入力してください。')
+        } else {
+          setErrorMessage('登録中にエラーが発生しました。')
+        }
       } else {
-        alert('予期しないエラーが発生しました')
+        setErrorMessage('登録中にエラーが発生しました。')
       }
+    } else {
+      setErrorMessage('予期しないエラーが発生しました。')
     }
   }
+}
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
       <div className="bg-gray-200 p-8 rounded-xl w-80 space-y-4 text-center shadow-lg">
         <h2 className="text-xl font-bold text-black">サインアップ</h2>
+
+        {errorMessage && <p className='text-red-600 text-sm'>{errorMessage}</p>}
 
         <input
           type="email"

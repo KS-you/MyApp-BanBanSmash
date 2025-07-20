@@ -7,21 +7,37 @@ import axios from 'axios'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const router = useRouter()
 
   const handleLogin = async () => {
-    try {
-      await axios.post('http://localhost:8000/login', { email, password })
-      localStorage.setItem('userEmail', email)
-      router.push('/home')
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        alert('ログイン失敗: ' + (err.response?.data?.detail || err.message))
+  setErrorMessage('')
+
+  if (!email || !password) {
+    setErrorMessage('メールアドレスとパスワードを入力してください。')
+    return
+  }
+
+  try {
+    await axios.post('http://localhost:8000/login', { email, password })
+    localStorage.setItem('userEmail', email)
+    router.push('/home')
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const detail = err.response?.data?.detail
+      // エラー表示
+      console.log('エラーレスポンス detail:', detail)
+
+      if (typeof detail === 'string' && detail === 'メールアドレスまたはパスワードが間違っています。') {
+        setErrorMessage('メールアドレスまたはパスワードが違います。')
       } else {
-        alert('ログイン失敗（予期しないエラー）')
+        setErrorMessage('ログイン中にエラーが発生しました。')
       }
+    } else {
+      setErrorMessage('予期しないエラーが発生しました。')
     }
   }
+}
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -34,6 +50,8 @@ export default function LoginPage() {
         </div>
 
         <h2 className="text-lg font-semibold text-black">ログイン</h2>
+
+        {errorMessage && <p className='text-red-600 text-sm'>{errorMessage}</p>}
 
         <input
           type="email"
