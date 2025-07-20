@@ -34,9 +34,9 @@ yarn-error.log*
 coverage/
 
 # 画像やアセット類を無視したい場合（任意）
-*.svg
-*.png
-*.jpg
+#*.svg
+#*.png
+#*.jpg
 
 # その他
 *.local

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -41,15 +42,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-gray-200 p-8 rounded-xl w-80 space-y-4 text-center shadow-lg">
+      <div className="bg-gray-400 p-8 rounded-xl w-80 space-y-4 text-center shadow-lg">
         {/* アプリタイトル */}
-        <div className="space-y-1 mb-4">
-          <div className="text-yellow-400 text-xl font-bold">Bang</div>
-          <div className="text-yellow-400 text-xl font-bold">Bang</div>
-          <div className="text-red-600 text-xl font-bold">Smash</div>
+        <div className="relative p-6 w-60 mx-auto rounded-lg pb-16">
+          <div className="absolute top-2 left-6 text-yellow-300 text-xl font-bold">Bang</div>
+          <div className="absolute top-9 right-28 text-yellow-300 text-xl font-bold">Bang</div>
+          <div className="absolute top-16 right-10 text-red-600 text-xl font-bold">Smash</div>
+          <Image src="/explosion_effect.png" alt="Explosion" width={50} height={50} className="absolute top-20 left-2" />
+          <Image src="/explosion_effect.png" alt="Explosion" width={50} height={50} className="absolute top-0 right-0" />
         </div>
 
-        <h2 className="text-lg font-semibold text-black">ログイン</h2>
+        <h2 className="text-lg font-semibold text-black mt-12">ログイン</h2>
 
         {errorMessage && <p className='text-red-600 text-sm'>{errorMessage}</p>}
 
