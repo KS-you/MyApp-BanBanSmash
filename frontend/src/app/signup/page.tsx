@@ -18,8 +18,8 @@ export default function SignupPage() {
     return
   }
   try {
-    await axios.post('http://localhost:8000/signup', { email, password })
-    await axios.post('http://localhost:8000/login', { email, password })
+    await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/signup`, { email, password })
+    await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, { email, password })
     localStorage.setItem('userEmail', email)
     router.push('/home')
   } catch (err: unknown) {

@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import schemas, auth
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes import object_routes
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
-
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,6 +16,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(object_routes.router)
+
 
 def get_db():
     db = SessionLocal()
