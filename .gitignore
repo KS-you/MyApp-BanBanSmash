@@ -10,6 +10,7 @@ node_modules/
 # Python venv
 backend/venv/
 backend/app/__pycache__
+backend/app/api/routes/__pycache__
 
 # Node.js
 node_modules/
