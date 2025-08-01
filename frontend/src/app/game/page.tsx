@@ -81,8 +81,14 @@ const GameScreen = () => {
         <div>TIME: {Math.floor(time / 60).toString().padStart(2, '0')}:{(time % 60).toString().padStart(2, '0')}</div>
     </div>
     <div className="relative h-[600px] bg-gray-800">
-      {objects.map(obj => (
-          <ObjectBox key={obj.id} id={obj.id} name={obj.name} onDestroy={handleDestroy} />
+      {objects.map((obj, index) => (
+          <ObjectBox
+          key={obj.id}
+          id={obj.id}
+          name={obj.name}
+          type={obj.type}
+          index={index}
+          onDestroy={handleDestroy} />
       ))}
     </div>
     <button onClick={handleEnd} className="mt-4 bg-white text-red-500 px-4 py-2 rounded">
