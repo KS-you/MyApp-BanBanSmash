@@ -13,7 +13,13 @@ class DestructionCreate(BaseModel):
 
 @router.get("/objects")
 def get_objects(db: Session = Depends(get_db)):
-    return db.query(models.Object).order_by(func.rand()).limit(15).all()
+    return (
+        db.query(models.Object)
+        .filter(models.Object.type.in_(["glass", "wood"]))
+        .order_by(func.rand())
+        .limit(30)
+        .all()
+    )
 
 
 @router.post("/destruction")

@@ -23,7 +23,7 @@ export default function HomePage() {
         <p className="text-sm text-white">ようこそ {userEmail} さん</p>
 
         <button
-          onClick={() => alert('ゲームスタート！')}
+          onClick={() => router.push('/game?start=true')}
           className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
         >
           ゲームスタート

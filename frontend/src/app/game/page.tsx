@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ObjectBox from './ObjectBox'
 
 type GameObject = {
   id: number
   name: string
+  type: 'glass' | 'wood'
 }
 
 const GameScreen = () => {
@@ -15,13 +16,26 @@ const GameScreen = () => {
   const [time, setTime] = useState(0)
   const [timerActive, setTimerActive] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const userId = 1 // 仮ユーザーの指定
 
-
   useEffect(() => {
-    axios.get<GameObject[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
-      .then(res => setObjects(res.data))
-  }, [])
+    const shouldStart = searchParams.get('start') === 'true'
+    if (shouldStart) {
+      axios.get<GameObject[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
+        .then(res => {
+          const data: GameObject[] = res.data
+          const filtered = data.filter(obj => {
+            const t = obj.type.toLowerCase()
+            return t === 'glass' || t === 'wood'
+          })
+          if (filtered.length === 0) console.warn('表示対象オブジェクトが見つかりません')
+          const shuffled = filtered.sort(() => 0.5 - Math.random())
+          setObjects(shuffled.slice(0, 30))
+          setTimerActive(true)
+        })
+    }
+  }, [searchParams])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -32,17 +46,28 @@ const GameScreen = () => {
   }, [timerActive])
 
   const handleDestroy = (id: number) => {
-    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/destruction`, { user_id: userId, objet_id: id })
-    setObjects(prev => prev.filter(obj => obj.id ! == id))
+    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/destruction`, {
+      user_id: userId,
+      object_id: id })
+    setObjects(prev => prev.filter(obj => obj.id !== id))
     setCount(prev => prev + 1)
   }
 
   useEffect(() => {
-    if(objects.length === 0){
-      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
-        .then(res => setObjects(res.data))
+    if (objects.length === 0 && timerActive) {
+      axios.get<GameObject[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
+      .then(res => {
+        const data: GameObject[] = res.data
+        const filtered = data.filter(obj => {
+          const t = obj.type.toLowerCase()
+          return t === 'glass' || t === 'wood'
+        })
+        if (filtered.length === 0) console.warn('補充対象オブジェクトが見つかりません')
+        const shuffled = filtered.sort(() => 0.5 - Math.random())
+        setObjects(shuffled.slice(0, 30))
+      })
     }
-  }, [objects])
+  }, [objects, timerActive])
 
   const handleEnd = () => {
     setTimerActive(false)
@@ -55,7 +80,7 @@ const GameScreen = () => {
         <div className="text-yellow-300">COUNT: {count}</div>
         <div>TIME: {Math.floor(time / 60).toString().padStart(2, '0')}:{(time % 60).toString().padStart(2, '0')}</div>
     </div>
-    <div className="relative h-96 bg-gray-800">
+    <div className="relative h-[600px] bg-gray-800">
       {objects.map(obj => (
           <ObjectBox key={obj.id} id={obj.id} name={obj.name} onDestroy={handleDestroy} />
       ))}
