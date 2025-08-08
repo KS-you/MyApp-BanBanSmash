@@ -10,8 +10,10 @@ type GameObject = {
   type: 'glass' | 'wood'
 }
 
+type NullableGameObject = GameObject | null
+
 const GameScreen = () => {
-  const [objects, setObjects] = useState<GameObject[]>([])
+  const [objects, setObjects] = useState<NullableGameObject[]>([])
   const [count, setCount] = useState(0)
   const [time, setTime] = useState(0)
   const [timerActive, setTimerActive] = useState(false)
@@ -31,6 +33,7 @@ const GameScreen = () => {
           })
           if (filtered.length === 0) console.warn('表示対象オブジェクトが見つかりません')
           const shuffled = filtered.sort(() => 0.5 - Math.random())
+          // 初期はすべて配置（空白なし）
           setObjects(shuffled.slice(0, 30))
           setTimerActive(true)
         })
@@ -48,13 +51,16 @@ const GameScreen = () => {
   const handleDestroy = (id: number) => {
     axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/destruction`, {
       user_id: userId,
-      object_id: id })
-    setObjects(prev => prev.filter(obj => obj.id !== id))
+      object_id: id,
+    })
+    setObjects(prev =>
+      prev.map(obj => (obj && obj.id === id ? null : obj))
+    )
     setCount(prev => prev + 1)
   }
 
   useEffect(() => {
-    if (objects.length === 0 && timerActive) {
+    if (timerActive && objects.every(obj => obj === null)) {
       axios.get<GameObject[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
       .then(res => {
         const data: GameObject[] = res.data
@@ -79,22 +85,35 @@ const GameScreen = () => {
       <div className = "flex justify-between text-white mb-4">
         <div className="text-yellow-300">COUNT: {count}</div>
         <div>TIME: {Math.floor(time / 60).toString().padStart(2, '0')}:{(time % 60).toString().padStart(2, '0')}</div>
+      </div>
+      <div className="relative h-[600px] bg-gray-800 flex justify-center items-center">
+        <div className="grid grid-cols-10 gap-3 justify-center"
+          style={{ placeItems: 'center', height: '100%' }}
+        >
+          {objects.map((obj, i) => {
+            if (obj) {
+              return (
+                <ObjectBox
+                  key={obj.id}
+                  id={obj.id}
+                  name={obj.name}
+                  type={obj.type}
+                  index={obj.index}
+                  onDestroy={handleDestroy}
+                />
+              )
+            } else {
+              return (
+                <div key={`empty-${i}`} className="w-full h-full" />
+              )
+            }
+          })}
+        </div>
+      </div>
+      <button onClick={handleEnd} className="mt-4 bg-white text-red-500 px-4 py-2 rounded">
+        終了
+      </button>
     </div>
-    <div className="relative h-[600px] bg-gray-800">
-      {objects.map((obj, index) => (
-          <ObjectBox
-          key={obj.id}
-          id={obj.id}
-          name={obj.name}
-          type={obj.type}
-          index={index}
-          onDestroy={handleDestroy} />
-      ))}
-    </div>
-    <button onClick={handleEnd} className="mt-4 bg-white text-red-500 px-4 py-2 rounded">
-      終了
-    </button>
-  </div>
   )
 }
 
