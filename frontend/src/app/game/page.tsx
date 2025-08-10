@@ -77,7 +77,7 @@ const GameScreen = () => {
 
   const handleEnd = () => {
     setTimerActive(false)
-    router.push('/home')
+    router.push(`/result?count=${count}&time=${time}`)
   }
 
   return (
@@ -98,7 +98,7 @@ const GameScreen = () => {
                   id={obj.id}
                   name={obj.name}
                   type={obj.type}
-                  index={obj.index}
+                  // index={obj.index}
                   onDestroy={handleDestroy}
                 />
               )

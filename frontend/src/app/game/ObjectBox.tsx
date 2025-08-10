@@ -10,7 +10,7 @@ const ObjectBox = ({
   name: string
   type: 'glass' | 'wood'
   onDestroy: (id: number) => void
-  index: number
+  // index: number
 }) => {
   const handleClick = () => {
     const sound = new Audio(name === 'glass' ? '/glass_break.mp3' : '/wood_break.mp3')
