@@ -3,21 +3,21 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import schemas, auth
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import object_routes
-from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes import object_routes, user_routes
 
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # ローカルのNext.jsを許可
+    allow_origins=["http://localhost:3000"],  # ローカルNext.js
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(object_routes.router)
+app.include_router(object_routes.router, prefix="/api")
+app.include_router(user_routes.router, prefix="/api")
 
 
 def get_db():

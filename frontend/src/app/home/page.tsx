@@ -30,7 +30,7 @@ export default function HomePage() {
         </button>
 
         <button
-          onClick={() => alert('マイページへ')}
+          onClick={() => router.push('/mypage')}
           className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
         >
           マイページ

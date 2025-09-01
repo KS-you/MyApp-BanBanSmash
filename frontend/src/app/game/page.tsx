@@ -110,7 +110,7 @@ const GameScreen = () => {
           })}
         </div>
       </div>
-      <button onClick={handleEnd} className="mt-4 bg-white text-red-500 px-4 py-2 rounded">
+      <button onClick={handleEnd} className="absolute bottom-4 right-4 bg-white  text-red-500 px-4 py-2 rounded shadow-lg">
         終了
       </button>
     </div>

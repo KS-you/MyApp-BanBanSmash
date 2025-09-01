@@ -21,7 +21,6 @@ def get_objects(db: Session = Depends(get_db)):
         .all()
     )
 
-
 @router.post("/destruction")
 def create_destruction(payload: DestructionCreate, db: Session = Depends(get_db)):
     destruction = models.Destruction(user_id=payload.user_id, object_id=payload.object_id)
