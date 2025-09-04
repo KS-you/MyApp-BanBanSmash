@@ -5,7 +5,28 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app import models, schemas
 from app.config import PASSWORD_PEPPER, PASSWORD_SALT
+from datetime import datetime, timedelta, timezone
+from jose import jwt
 
+SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+def create_access_token(data: dict, expires_delta: int | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(tz=timezone.utc) + timedelta(minutes=expires_delta)
+    else:
+        expire = datetime.now(tz=timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def login_and_get_token(db: Session, email: str, password: str) -> str:
+    user = authenticate_user(db, email, password)
+    token_data = {"sub": str(user.id)}
+    token = create_access_token(token_data)
+    return token
 
 def is_valid_email(email: str) -> bool:
     pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
