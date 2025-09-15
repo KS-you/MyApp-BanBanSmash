@@ -14,9 +14,9 @@ def init():
             )
             db.add(obj)
         db.commit()
-        print("✅ 30個のオブジェクトを登録しました。")
+        print("✅ 30個のオブジェクトを登録しました")
     else:
-        print("⚠️ オブジェクトはすでに登録されています。")
+        print("⚠️ オブジェクトはすでに登録されています")
     db.close()
 
     print("Done.")
