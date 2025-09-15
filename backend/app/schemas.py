@@ -1,9 +1,10 @@
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr
+from pydantic.types import constr
+from typing import Optional, Annotated
 
 class UserCreate(BaseModel):
-	email: EmailStr
-	password: constr(min_length=6, max_length=64)
-
+	email: Optional[EmailStr]
+	password: Optional[Annotated[str, constr(min_length=6, max_length=64)]] = None
 class UserOut(BaseModel):
 	id: int
 	email: EmailStr
@@ -13,8 +14,14 @@ class UserOut(BaseModel):
 
 class UserLogin(BaseModel):
 	email: EmailStr
-	password: constr(min_length=6, max_length=64)
+	password: Optional[Annotated[str, constr(min_length=6, max_length=64)]] = None
 
 class UserUpdate(BaseModel):
-	email :EmailStr | None = None
-	password: constr(min_length=6, max_length=64) | None = None
+    email: Optional[EmailStr] = None
+    password: Optional[Annotated[str, constr(min_length=6, max_length=64)]] = None
+class UserResponse(BaseModel):
+	id: int
+	email: EmailStr
+
+	class Config:
+		orm_mode = True

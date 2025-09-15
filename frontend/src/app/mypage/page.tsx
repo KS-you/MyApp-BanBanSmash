@@ -1,66 +1,90 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import { jwtDecode }  from "jwt-decode";
 
 const MyPage = () => {
 	const router = useRouter()
 
-	// 入力フォームステート
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState('')
+	const [userId, setUserId] = useState<number | null>(null);
 
-	const userId = 4
+	useEffect(() => {
+		const token = localStorage.getItem("accessToken");
+		if (token) {
+			const decoded = jwtDecode<{ sub: string }>(token);
+			setUserId(Number(decoded.sub));
+		}
+	}, []);
 
 	// userUpdate
 	const handleUpdate = async () => {
-			try {
-					setLoading(true)
-					setMessage('')
+		if (userId === null) {
+			setMessage('ユーザーIDが無効です。');
+			return;
+		}
+		try {
+			setLoading(true)
+			setMessage('')
 
-					type UpdateUserData = {
-						email?: string;
-						password?: string;
-					};
+			const updateData: { email?: string; password?: string } = {};
+      if (email) updateData.email = email;
+      if (password) updateData.password = password;
 
-					const updateData: UpdateUserData = {};
-					if (email) updateData.email = email;
-					if (password) updateData.password = password;
+      if (Object.keys(updateData).length === 0) {
+         setMessage('メールアドレスまたはパスワードのどちらかを入力して下さい');
+         return;
+        }
+      const token = localStorage.getItem("accessToken");
+        if (!token) {
+           setMessage('アクセストークンがありません、再ログインしてください');
+           return;
+        }
 
-					if (Object.keys(updateData).length === 0) {
-						setMessage('変更する項目を入力してください');
-						return;
-					}
+			await axios.put(
+				`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`,
+				updateData,
+        {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+        }
+			)
 
-					await axios.put(
-						`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`,
-						updateData
-					)
-					console.log(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`)
-					setMessage('更新しました！')
-			} catch (error) {
-				console.log(error)
-				setMessage('更新に失敗しました')
-			} finally {
-				setLoading(false)
-			}
+			setMessage('更新しました！')
+      setEmail('')
+      setPassword('')
+
+		} catch (error) {
+			console.log(error)
+			setMessage('更新に失敗しました')
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	// userDelete
 	const handleDelete = async () => {
 		if (!confirm('本当に退会しますか？')) return
+		if (userId === null) {
+			setMessage('ユーザーIDが無効です');
+			return;
+		}
 		try {
 			setLoading(true)
 			setMessage('')
 			await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`)
-			alert('退会が完了しました、ホームに戻ります。')
+			alert('退会が完了しました、ホームに戻ります')
 			router.push('/')
 		} catch (error) {
 			console.log(error)
-			setMessage('退会に失敗しました。')
-		}finally {
+			setMessage('退会に失敗しました')
+		} finally {
 			setLoading(false)
 		}
 	}
@@ -92,7 +116,7 @@ const MyPage = () => {
 						type="password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
-						className="w-ful px-3 py-2 border rounded bg-gray-100 text-black"
+						className="w-full px-3 py-2 border rounded bg-gray-100 text-black"
 						placeholder="新しいパスワード"
 					/>
 				</div>
@@ -101,7 +125,7 @@ const MyPage = () => {
 				<button
 					onClick={handleUpdate}
 					disabled={loading}
-					className="w-ful bg-green-600 text-white py-2 rounded mb-4 hover:bg-green-700"
+					className="w-full bg-green-600 text-white py-2 rounded mb-4 hover:bg-green-700"
 				>
 					{loading ? '更新中...' : '更新'}
 				</button>
@@ -110,7 +134,7 @@ const MyPage = () => {
 				<button
 					onClick={handleDelete}
 					disabled={loading}
-					className="w-ful bg-red-600 text-white py-2 rounded mb-4 hover:bg-red-700"
+					className="w-full bg-red-600 text-white py-2 rounded mb-4 hover:bg-red-700"
 				>
 					{loading ? '処理中...' : '退会'}
 				</button>
@@ -118,7 +142,7 @@ const MyPage = () => {
 				{/* ホーム画面遷移ボタン */}
 				<button
 					onClick={handleGoHome}
-					className="w-ful bg-white text-black border py-2 rounded hover:bg-gray-200"
+					className="w-full bg-white text-black border py-2 rounded hover:bg-gray-200"
 				>
 					ホーム画面へ
 				</button>

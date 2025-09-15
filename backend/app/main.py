@@ -1,16 +1,19 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import schemas, auth
+from app.auth import create_user, authenticate_user, create_access_token
+from passlib.context import CryptContext
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import object_routes, user_routes
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # ローカルNext.js
+    allow_origins=["http://localhost:3000"],  # LocalNext.js
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,8 +32,12 @@ def get_db():
 
 @app.post("/signup", response_model=schemas.UserOut)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    return auth.create_user(db, user)
+    return create_user(db, user)
 
-@app.post("/login", response_model=schemas.UserOut)
+@app.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    return auth.authenticate_user(db, user.email, user.password)
+    db_user = authenticate_user(db, user.email, user.password)
+    if not db_user:
+        raise HTTPException(status_code=401, detail="この認証情報は無効です")
+    token = create_access_token({"sub": str(db_user.id)})
+    return {"access_token": token, "token_type": "bearer"}

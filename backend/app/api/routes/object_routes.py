@@ -1,29 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Body, Request, HTTPException
 from sqlalchemy.orm import Session
-from app import models
+from app.models import Destruction, Object, User
 from app.database import get_db
+from app.auth import get_current_user
 from sqlalchemy.sql.expression import func
-from pydantic import BaseModel
 
-router = APIRouter(prefix="/api")
-
-class DestructionCreate(BaseModel):
-    user_id: int
-    object_id: int
+router = APIRouter()
 
 @router.get("/objects")
 def get_objects(db: Session = Depends(get_db)):
     return (
-        db.query(models.Object)
-        .filter(models.Object.type.in_(["glass", "wood"]))
+        db.query(Object)
+        .filter(Object.type.in_(["glass", "wood"]))
         .order_by(func.rand())
         .limit(30)
         .all()
     )
 
 @router.post("/destruction")
-def create_destruction(payload: DestructionCreate, db: Session = Depends(get_db)):
-    destruction = models.Destruction(user_id=payload.user_id, object_id=payload.object_id)
+def create_destruction(
+    request: Request,
+    object_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="認証情報がありません")
+
+    destruction = Destruction(user_id=current_user.id, object_id=object_id)
     db.add(destruction)
     db.commit()
     db.refresh(destruction)

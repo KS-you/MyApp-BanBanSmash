@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import ObjectBox from './ObjectBox'
+import { jwtDecode } from 'jwt-decode'
 
 type GameObject = {
   id: number
@@ -12,16 +13,42 @@ type GameObject = {
 
 type NullableGameObject = GameObject | null
 
+type JwtPayload = {
+  sub: string
+  exp?: number
+}
+
 const GameScreen = () => {
   const [objects, setObjects] = useState<NullableGameObject[]>([])
   const [count, setCount] = useState(0)
   const [time, setTime] = useState(0)
   const [timerActive, setTimerActive] = useState(false)
+  const [userId, setUserId] = useState<number | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const userId = 1 // 仮ユーザーの指定
 
+  // JWT ID　obtain
   useEffect(() => {
+    const token = localStorage.getItem("accessToken")
+    if (!token) {
+      console.error("アクセストークンがありません、ログインしてください")
+      router.push("/")
+      return
+    }
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token)
+      setUserId(Number(decoded.sub))
+    } catch (error) {
+      console.error("トークンのデコードに失敗しました", error)
+      router.push("/")
+    }
+  }, [router])
+
+  // Object obtain
+  useEffect(() => {
+    if (!userId) return
+
     const shouldStart = searchParams.get('start') === 'true'
     if (shouldStart) {
       axios.get<GameObject[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
@@ -37,9 +64,11 @@ const GameScreen = () => {
           setObjects(shuffled.slice(0, 30))
           setTimerActive(true)
         })
+        .catch(err => console.log("オブジェクト取得に失敗", err))
     }
-  }, [searchParams])
+  }, [searchParams, userId])
 
+  // Timer
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (timerActive) {
@@ -48,17 +77,46 @@ const GameScreen = () => {
     return () => clearInterval(interval)
   }, [timerActive])
 
-  const handleDestroy = (id: number) => {
-    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/destruction`, {
-      user_id: userId,
-      object_id: id,
-    })
-    setObjects(prev =>
-      prev.map(obj => (obj && obj.id === id ? null : obj))
-    )
-    setCount(prev => prev + 1)
+  // Click ObjectDestroy
+  const handleDestroy = async (id: number) => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        console.error("アクセストークンがありません、ログインしてください")
+        router.push("/")
+        return
+      }
+
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/destruction`,
+        { object_id: id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+
+      setObjects(prev =>
+        prev.map(obj => (obj && obj.id === id ? null : obj))
+      )
+      setCount(prev => prev + 1)
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          console.log("認証に失敗しました、ログインし直してください")
+          router.push("/")
+        } else {
+          console.log("オブジェクトの破壊に失敗しました。", error)
+        }
+      } else {
+        console.log("予期せぬエラー:", error)
+      }
+    }
   }
 
+  // Object Replenishment
   useEffect(() => {
     if (timerActive && objects.every(obj => obj === null)) {
       axios.get<GameObject[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/objects`)
@@ -72,9 +130,11 @@ const GameScreen = () => {
         const shuffled = filtered.sort(() => 0.5 - Math.random())
         setObjects(shuffled.slice(0, 30))
       })
+      .catch(err => console.log("オブジェクト補充に失敗", err))
     }
   }, [objects, timerActive])
 
+  // GoResult
   const handleEnd = () => {
     setTimerActive(false)
     router.push(`/result?count=${count}&time=${time}`)

@@ -11,34 +11,57 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const router = useRouter()
 
-  const handleLogin = async () => {
-  setErrorMessage('')
-
-  if (!email || !password) {
-    setErrorMessage('メールアドレスとパスワードを入力してください。')
-    return
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
-  try {
-    await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, { email, password })
-    localStorage.setItem('userEmail', email)
-    router.push('/home')
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      const detail = err.response?.data?.detail
-      // エラー表示
-      console.log('エラーレスポンス detail:', detail)
+  const handleLogin = async () => {
+    setErrorMessage('')
 
-      if (typeof detail === 'string' && detail === 'メールアドレスまたはパスワードが間違っています。') {
-        setErrorMessage('メールアドレスまたはパスワードが違います。')
-      } else {
-        setErrorMessage('ログイン中にエラーが発生しました。')
+    if (!email || !password) {
+      setErrorMessage('メールアドレスとパスワードを入力してください')
+      return
+    }
+
+    if (!validateEmail(email)) {
+      setErrorMessage('正しいメールアドレスの形式で入力してください')
+      return
+    }
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, { email, password })
+      const accessToken = response.data?.access_token
+
+      if (!accessToken || typeof accessToken !== 'string') {
+        setErrorMessage('ログインに失敗しました。トークンが取得できませんでした')
+        return
       }
-    } else {
-      setErrorMessage('予期しないエラーが発生しました。')
+
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('userEmail', email)
+
+      router.push('/home')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const detail = err.response?.data?.detail
+        console.log('エラーレスポンス detail:', detail)
+
+        if (typeof detail === 'string') {
+          if (detail === 'メールアドレスまたはパスワードが間違っています') {
+            setErrorMessage('メールアドレスまたはパスワードが違います')
+          } else {
+            setErrorMessage(detail)
+          }
+        } else if (err.response?.status === 401) {
+          setErrorMessage('認証に失敗しました。メールアドレスまたはパスワードを確認してください')
+        } else {
+          setErrorMessage('ログイン中にエラーが発生しました')
+        }
+      } else {
+        setErrorMessage('予期しないエラーが発生しました')
+      }
     }
   }
-}
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
