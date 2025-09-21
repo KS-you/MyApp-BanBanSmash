@@ -48,7 +48,7 @@ export default function LoginPage() {
 
         if (typeof detail === 'string') {
           if (detail === 'メールアドレスまたはパスワードが間違っています') {
-            setErrorMessage('メールアドレスまたはパスワードが違います')
+            setErrorMessage('メールアドレスまたはパスワードが間違っています')
           } else {
             setErrorMessage(detail)
           }

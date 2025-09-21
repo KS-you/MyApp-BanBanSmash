@@ -38,6 +38,6 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = authenticate_user(db, user.email, user.password)
     if not db_user:
-        raise HTTPException(status_code=401, detail="この認証情報は無効です")
+        raise HTTPException(status_code=401, detail="メールアドレスまたはパスワードが間違っています")
     token = create_access_token({"sub": str(db_user.id)})
     return {"access_token": token, "token_type": "bearer"}

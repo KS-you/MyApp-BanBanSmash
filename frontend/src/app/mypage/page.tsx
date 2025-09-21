@@ -78,7 +78,16 @@ const MyPage = () => {
 		try {
 			setLoading(true)
 			setMessage('')
-			await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`)
+			const token = localStorage.getItem("accessToken");
+			if (!token) {
+				setMessage('アクセストークンがありません、再ログインしてください');
+				return;
+			}
+			await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			})
 			alert('退会が完了しました、ホームに戻ります')
 			router.push('/')
 		} catch (error) {
