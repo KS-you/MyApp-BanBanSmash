@@ -8,6 +8,9 @@ ENV PYTHONPATH=/app
 # 作業ディレクトリ
 WORKDIR /app
 
+# pipの最新化
+RUN python -m pip install --upgrade pip
+
 # 必要ファイルコピー
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

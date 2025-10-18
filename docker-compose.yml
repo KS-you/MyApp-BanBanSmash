@@ -13,7 +13,6 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
-    # command: sh -c "NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev"
     networks:
       - app_network
 
